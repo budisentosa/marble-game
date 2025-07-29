@@ -152,13 +152,13 @@ class MarbleRaceGame {
     }
 
     async simulateRace() {
-        const raceMarbles = Array.from(this.selectedMarbles);
+        const allMarbles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // All 10 marbles race
         const raceTrack = document.getElementById('race-marbles');
         const trackWidth = document.getElementById('race-track').clientWidth - 100;
         
         raceTrack.innerHTML = '';
 
-        const marbleElements = raceMarbles.map(marbleId => {
+        const marbleElements = allMarbles.map(marbleId => {
             const marble = document.createElement('div');
             marble.className = 'racing-marble';
             marble.style.background = this.marbleStyles[marbleId - 1];
@@ -272,26 +272,29 @@ class MarbleRaceGame {
             let multiplier = 0;
             let winnings = 0;
 
-            if (result.position === 1) {
-                multiplier = 3;
-                winnings = betAmount * 3;
-            } else if (result.position === 2) {
-                multiplier = 2;
-                winnings = betAmount * 2;
-            } else if (result.position === 3) {
-                multiplier = 1;
-                winnings = betAmount;
-            }
+            // Only calculate payouts for marbles that were bet on
+            if (betAmount > 0) {
+                if (result.position === 1) {
+                    multiplier = 3;
+                    winnings = betAmount * 3;
+                } else if (result.position === 2) {
+                    multiplier = 2;
+                    winnings = betAmount * 2;
+                } else if (result.position === 3) {
+                    multiplier = 1;
+                    winnings = betAmount;
+                }
 
-            if (winnings > 0) {
-                totalWinnings += winnings;
-                payoutDetails.push({
-                    marbleId,
-                    position: result.position,
-                    betAmount,
-                    multiplier,
-                    winnings
-                });
+                if (winnings > 0) {
+                    totalWinnings += winnings;
+                    payoutDetails.push({
+                        marbleId,
+                        position: result.position,
+                        betAmount,
+                        multiplier,
+                        winnings
+                    });
+                }
             }
         });
 
