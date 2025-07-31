@@ -2,7 +2,9 @@ class MarbleRaceGame {
   constructor() {
     this.gems = this.loadGems();
     this.selectedMarbles = new Set();
+    this.nextSelectedMarbles = new Set();
     this.bets = {};
+    this.nextBets = {};
     this.gamePhase = 'betting'; // 'betting' or 'racing'
     this.countdownTimer = null;
     this.raceTimer = null;
@@ -46,23 +48,39 @@ class MarbleRaceGame {
   }
 
   handleMarbleSelection(event) {
-    if (this.gamePhase !== 'betting') return;
-
     const marbleId = parseInt(event.target.dataset.id);
     const marbleElement = event.target;
 
-    if (this.selectedMarbles.has(marbleId)) {
-      this.selectedMarbles.delete(marbleId);
-      marbleElement.classList.remove('selected');
-      delete this.bets[marbleId];
-    } else {
-      if (this.selectedMarbles.size >= 9) {
-        this.showError('You can select maximum 9 marbles');
-        return;
+    if (this.gamePhase === 'betting') {
+      // Handle current race betting
+      if (this.selectedMarbles.has(marbleId)) {
+        this.selectedMarbles.delete(marbleId);
+        marbleElement.classList.remove('selected');
+        delete this.bets[marbleId];
+      } else {
+        if (this.selectedMarbles.size >= 9) {
+          this.showError('You can select maximum 9 marbles');
+          return;
+        }
+        this.selectedMarbles.add(marbleId);
+        marbleElement.classList.add('selected');
+        this.bets[marbleId] = 10; // Default bet
       }
-      this.selectedMarbles.add(marbleId);
-      marbleElement.classList.add('selected');
-      this.bets[marbleId] = 10; // Default bet
+    } else {
+      // Handle next race betting during racing phase
+      if (this.nextSelectedMarbles.has(marbleId)) {
+        this.nextSelectedMarbles.delete(marbleId);
+        marbleElement.classList.remove('next-selected');
+        delete this.nextBets[marbleId];
+      } else {
+        if (this.nextSelectedMarbles.size >= 9) {
+          this.showError('You can select maximum 9 marbles for next race');
+          return;
+        }
+        this.nextSelectedMarbles.add(marbleId);
+        marbleElement.classList.add('next-selected');
+        this.nextBets[marbleId] = 10; // Default bet
+      }
     }
 
     this.updateBettingInterface();
@@ -73,36 +91,84 @@ class MarbleRaceGame {
     const betInputsContainer = document.getElementById('bet-inputs');
     betInputsContainer.innerHTML = '';
 
-    this.selectedMarbles.forEach((marbleId) => {
-      const betGroup = document.createElement('div');
-      betGroup.className = 'bet-input-group';
+    if (this.gamePhase === 'betting') {
+      // Show current race betting
+      if (this.selectedMarbles.size > 0) {
+        const currentRaceHeader = document.createElement('div');
+        currentRaceHeader.className = 'betting-header current-race';
+        currentRaceHeader.innerHTML = '🏁 Current Race Bets';
+        betInputsContainer.appendChild(currentRaceHeader);
+      }
 
-      betGroup.innerHTML = `
-                <div class="marble-preview" style="background: ${
-                  this.marbleStyles[marbleId - 1]
-                };">${marbleId}</div>
-                <label>Marble ${marbleId}:</label>
-                <input type="number" 
-                       id="bet-${marbleId}" 
-                       value="${this.bets[marbleId]}" 
-                       min="1" 
-                       max="${this.gems}">
-                <span>gems</span>
-            `;
+      this.selectedMarbles.forEach((marbleId) => {
+        const betGroup = document.createElement('div');
+        betGroup.className = 'bet-input-group';
 
-      betInputsContainer.appendChild(betGroup);
+        betGroup.innerHTML = `
+                  <div class="marble-preview" style="background: ${
+                    this.marbleStyles[marbleId - 1]
+                  };">${marbleId}</div>
+                  <label>Marble ${marbleId}:</label>
+                  <input type="number" 
+                         id="bet-${marbleId}" 
+                         value="${this.bets[marbleId]}" 
+                         min="1" 
+                         max="${this.gems}">
+                  <span>gems</span>
+              `;
 
-      const input = document.getElementById(`bet-${marbleId}`);
-      input.addEventListener('input', (e) =>
-        this.handleBetChange(marbleId, e.target.value)
-      );
-    });
+        betInputsContainer.appendChild(betGroup);
+
+        const input = document.getElementById(`bet-${marbleId}`);
+        input.addEventListener('input', (e) =>
+          this.handleBetChange(marbleId, e.target.value, 'current')
+        );
+      });
+    } else {
+      // Show next race betting during racing phase
+      if (this.nextSelectedMarbles.size > 0) {
+        const nextRaceHeader = document.createElement('div');
+        nextRaceHeader.className = 'betting-header next-race';
+        nextRaceHeader.innerHTML = '⏭️ Next Race Bets';
+        betInputsContainer.appendChild(nextRaceHeader);
+      }
+
+      this.nextSelectedMarbles.forEach((marbleId) => {
+        const betGroup = document.createElement('div');
+        betGroup.className = 'bet-input-group';
+
+        betGroup.innerHTML = `
+                  <div class="marble-preview" style="background: ${
+                    this.marbleStyles[marbleId - 1]
+                  };">${marbleId}</div>
+                  <label>Marble ${marbleId}:</label>
+                  <input type="number" 
+                         id="next-bet-${marbleId}" 
+                         value="${this.nextBets[marbleId]}" 
+                         min="1" 
+                         max="${this.gems}">
+                  <span>gems</span>
+              `;
+
+        betInputsContainer.appendChild(betGroup);
+
+        const input = document.getElementById(`next-bet-${marbleId}`);
+        input.addEventListener('input', (e) =>
+          this.handleBetChange(marbleId, e.target.value, 'next')
+        );
+      });
+    }
   }
 
-  handleBetChange(marbleId, value) {
-    if (this.gamePhase !== 'betting') return;
+  handleBetChange(marbleId, value, raceType) {
     const betAmount = parseInt(value) || 0;
-    this.bets[marbleId] = Math.max(1, Math.min(betAmount, this.gems));
+    const maxBet = this.gems;
+    
+    if (raceType === 'next') {
+      this.nextBets[marbleId] = Math.max(1, Math.min(betAmount, maxBet));
+    } else {
+      this.bets[marbleId] = Math.max(1, Math.min(betAmount, maxBet));
+    }
   }
 
   startBettingPhase() {
@@ -113,15 +179,33 @@ class MarbleRaceGame {
     if (this.countdownTimer) clearInterval(this.countdownTimer);
     if (this.raceTimer) clearInterval(this.raceTimer);
     
-    // Only clear the racing marbles, keep results visible
-    this.clearRaceTrack();
+    // Move next race bets to current race bets
+    this.selectedMarbles = new Set(this.nextSelectedMarbles);
+    this.bets = { ...this.nextBets };
     
-    // Enable marble selection
+    // Clear next race bets
+    this.nextSelectedMarbles.clear();
+    this.nextBets = {};
+    
+    // Update marble selection visuals
     document.querySelectorAll('.marble').forEach(marble => {
+      const marbleId = parseInt(marble.dataset.id);
+      marble.classList.remove('next-selected');
+      
+      if (this.selectedMarbles.has(marbleId)) {
+        marble.classList.add('selected');
+      } else {
+        marble.classList.remove('selected');
+      }
+      
       marble.style.pointerEvents = 'auto';
       marble.style.opacity = '1';
     });
     
+    // Only clear the racing marbles, keep results visible
+    this.clearRaceTrack();
+    
+    this.updateBettingInterface();
     this.updateCountdown();
     
     this.countdownTimer = setInterval(() => {
@@ -139,13 +223,13 @@ class MarbleRaceGame {
     this.gamePhase = 'racing';
     this.racingTimeLeft = 15;
     
-    // Disable marble selection
+    // Keep marble selection enabled for next race betting
     document.querySelectorAll('.marble').forEach(marble => {
-      marble.style.pointerEvents = 'none';
-      marble.style.opacity = '0.7';
+      marble.style.pointerEvents = 'auto';
+      marble.style.opacity = '1';
     });
     
-    // Process bets
+    // Process current race bets
     const totalBet = Object.values(this.bets).reduce((sum, bet) => sum + bet, 0);
     if (totalBet > 0 && totalBet <= this.gems) {
       this.gems -= totalBet;
@@ -153,6 +237,7 @@ class MarbleRaceGame {
       this.saveGems();
     }
     
+    this.updateBettingInterface();
     this.updateCountdown();
     this.startRace();
     
@@ -169,8 +254,14 @@ class MarbleRaceGame {
   
   updateCountdown() {
     const timeLeft = this.gamePhase === 'betting' ? this.bettingTimeLeft : this.racingTimeLeft;
-    const phase = this.gamePhase === 'betting' ? 'Betting' : 'Racing';
-    const statusMessage = `${phase} Phase: ${timeLeft}s remaining`;
+    let statusMessage;
+    
+    if (this.gamePhase === 'betting') {
+      statusMessage = `Betting Phase: ${timeLeft}s remaining`;
+    } else {
+      statusMessage = `Racing Phase: ${timeLeft}s remaining (Bet for Next Race!)`;
+    }
+    
     this.updateRaceStatusMessage(statusMessage);
     
     // Update CSS class for visual phase indication
@@ -179,14 +270,22 @@ class MarbleRaceGame {
   }
 
   resetBets() {
-    if (this.gamePhase !== 'betting') return;
-
-    this.selectedMarbles.clear();
-    this.bets = {};
-
-    document.querySelectorAll('.marble').forEach((marble) => {
-      marble.classList.remove('selected');
-    });
+    if (this.gamePhase === 'betting') {
+      this.selectedMarbles.clear();
+      this.bets = {};
+      
+      document.querySelectorAll('.marble').forEach((marble) => {
+        marble.classList.remove('selected');
+      });
+    } else {
+      // During racing phase, reset next race bets
+      this.nextSelectedMarbles.clear();
+      this.nextBets = {};
+      
+      document.querySelectorAll('.marble').forEach((marble) => {
+        marble.classList.remove('next-selected');
+      });
+    }
 
     this.updateBettingInterface();
     this.clearError();
