@@ -7,18 +7,43 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="game-container">
-        <header class="game-header">
-            <h1>Marble Race Betting</h1>
+    <!-- Full Screen Race Track -->
+    <div class="race-container">
+        <header class="race-header">
+            <div class="game-title">Marble Race Betting</div>
             <div class="gem-balance">
                 <span class="gem-icon">💎</span>
                 <span id="gem-count">1000</span> Gems
             </div>
+            <button id="open-betting-modal" class="btn btn-primary betting-button">
+                🎯 Place Bets
+            </button>
         </header>
 
-        <main class="game-main">
+        <div id="race-track" class="race-track">
+            <div class="finish-line">FINISH</div>
+            <div id="race-marbles" class="race-marbles"></div>
+        </div>
+        
+        <div id="race-status" class="race-status">Betting Phase: 15s remaining</div>
+        
+        <div class="results-overlay">
+            <div id="race-results" class="race-results"></div>
+            <div id="payout-info" class="payout-info"></div>
+        </div>
+    </div>
+
+    <!-- Betting Modal -->
+    <div id="betting-modal" class="betting-modal">
+        <div class="betting-modal-content">
+            <div class="betting-modal-header">
+                <h2>Select Marbles & Place Bets</h2>
+                <div id="betting-countdown" class="betting-countdown">15s</div>
+                <button id="close-betting-modal" class="close-modal">&times;</button>
+            </div>
+            
             <div class="marble-selection">
-                <h2>Select Marbles (1-9)</h2>
+                <h3>Select Marbles (1-9)</h3>
                 <div class="marble-grid">
                     <div class="marble" data-id="1" style="background: linear-gradient(135deg, #ff6b6b, #ee5a24);">1</div>
                     <div class="marble" data-id="2" style="background: linear-gradient(135deg, #4ecdc4, #00d2d3);">2</div>
@@ -34,28 +59,14 @@
             </div>
 
             <div class="betting-section">
-                <h2>Place Your Bets</h2>
                 <div id="bet-inputs" class="bet-inputs"></div>
                 <div class="bet-controls">
                     <button id="reset-bets" class="btn btn-secondary">Reset Bets</button>
+                    <button id="confirm-bets" class="btn btn-primary">Confirm Bets</button>
                 </div>
                 <div id="error-message" class="error-message"></div>
             </div>
-
-            <div class="race-section">
-                <h2>Race Track</h2>
-                <div id="race-track" class="race-track">
-                    <div class="finish-line">FINISH</div>
-                    <div id="race-marbles" class="race-marbles"></div>
-                </div>
-                <div id="race-status" class="race-status">Betting Phase: 15s remaining</div>
-            </div>
-
-            <div class="results-section">
-                <div id="race-results" class="race-results"></div>
-                <div id="payout-info" class="payout-info"></div>
-            </div>
-        </main>
+        </div>
     </div>
 
     <script src="script.js"></script>

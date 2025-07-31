@@ -45,6 +45,28 @@ class MarbleRaceGame {
     document
       .getElementById('reset-bets')
       .addEventListener('click', () => this.resetBets());
+    
+    // Modal controls
+    document
+      .getElementById('open-betting-modal')
+      .addEventListener('click', () => this.openBettingModal());
+    
+    document
+      .getElementById('close-betting-modal')
+      .addEventListener('click', () => this.closeBettingModal());
+    
+    document
+      .getElementById('confirm-bets')
+      .addEventListener('click', () => this.confirmBets());
+    
+    // Close modal when clicking outside
+    document
+      .getElementById('betting-modal')
+      .addEventListener('click', (e) => {
+        if (e.target.id === 'betting-modal') {
+          this.closeBettingModal();
+        }
+      });
   }
 
   handleMarbleSelection(event) {
@@ -202,8 +224,17 @@ class MarbleRaceGame {
       marble.style.opacity = '1';
     });
     
-    // Only clear the racing marbles, keep results visible
+    // Restore race status visibility but keep it smaller since results are showing
+    const raceStatus = document.getElementById('race-status');
+    raceStatus.style.opacity = '0.8';
+    raceStatus.style.transform = 'translate(-50%, -50%) scale(0.9)';
+    
+    // Keep results overlay visible during betting phase
+    // Only clear race track, NOT the results
     this.clearRaceTrack();
+    
+    // Close betting modal if open
+    this.closeBettingModal();
     
     this.updateBettingInterface();
     this.updateCountdown();
@@ -237,6 +268,21 @@ class MarbleRaceGame {
       this.saveGems();
     }
     
+    // NOW hide the results overlay since new race is starting
+    const resultsOverlay = document.querySelector('.results-overlay');
+    if (resultsOverlay.style.display !== 'none') {
+      resultsOverlay.style.opacity = '0';
+      resultsOverlay.style.transform = 'translateY(20px)';
+      setTimeout(() => {
+        resultsOverlay.style.display = 'none';
+      }, 500);
+    }
+    
+    // Restore race status to full visibility for new race
+    const raceStatus = document.getElementById('race-status');
+    raceStatus.style.opacity = '1';
+    raceStatus.style.transform = 'translate(-50%, -50%) scale(1)';
+    
     this.updateBettingInterface();
     this.updateCountdown();
     this.startRace();
@@ -264,9 +310,54 @@ class MarbleRaceGame {
     
     this.updateRaceStatusMessage(statusMessage);
     
+    // Update modal countdown if modal is open
+    const modalCountdown = document.getElementById('betting-countdown');
+    if (modalCountdown) {
+      modalCountdown.textContent = `${timeLeft}s`;
+    }
+    
     // Update CSS class for visual phase indication
     const statusElement = document.getElementById('race-status');
     statusElement.className = `race-status ${this.gamePhase}-phase`;
+  }
+
+  openBettingModal() {
+    const modal = document.getElementById('betting-modal');
+    modal.classList.add('active');
+    
+    // Update modal header based on phase
+    const modalHeader = document.querySelector('.betting-modal-header h2');
+    if (this.gamePhase === 'betting') {
+      modalHeader.textContent = 'Select Marbles & Place Bets';
+    } else {
+      modalHeader.textContent = 'Bet for Next Race';
+    }
+    
+    this.updateBettingInterface();
+  }
+
+  closeBettingModal() {
+    const modal = document.getElementById('betting-modal');
+    modal.classList.remove('active');
+  }
+
+  confirmBets() {
+    // Validate bets first
+    const currentBets = this.gamePhase === 'betting' ? this.bets : this.nextBets;
+    const totalBet = Object.values(currentBets).reduce((sum, bet) => sum + bet, 0);
+    
+    if (totalBet > this.gems) {
+      this.showError('Not enough gems for these bets');
+      return;
+    }
+    
+    if (Object.keys(currentBets).length === 0) {
+      this.showError('Please select at least one marble');
+      return;
+    }
+    
+    this.clearError();
+    this.closeBettingModal();
   }
 
   resetBets() {
@@ -385,9 +476,12 @@ class MarbleRaceGame {
 
   displayResults(results) {
     const resultsContainer = document.getElementById('race-results');
-    resultsContainer.innerHTML = '<div class="results-header">🏁 Last Race Results</div>';
+    resultsContainer.innerHTML = '<div class="results-header">🏁 Race Results</div>';
 
-    results.forEach((result) => {
+    // Show top 3 only to save space in overlay
+    const topResults = results.slice(0, 3);
+    
+    topResults.forEach((result) => {
       const resultItem = document.createElement('div');
       resultItem.className = 'result-item';
 
@@ -396,9 +490,11 @@ class MarbleRaceGame {
       else if (result.position === 3) resultItem.classList.add('third');
 
       const positionText = this.getPositionText(result.position);
+      const medals = ['🥇', '🥈', '🥉'];
+      const medal = medals[result.position - 1] || '';
 
       resultItem.innerHTML = `
-                <div class="position">${positionText}</div>
+                <div class="position">${medal} ${positionText}</div>
                 <div class="marble-info">
                     <div class="marble-preview" style="background: ${
                       this.marbleStyles[result.id - 1]
@@ -409,6 +505,29 @@ class MarbleRaceGame {
 
       resultsContainer.appendChild(resultItem);
     });
+  }
+
+  showResultsOverlay() {
+    // Dim race status when showing results
+    const raceStatus = document.getElementById('race-status');
+    raceStatus.style.opacity = '0.6';
+    raceStatus.style.transform = 'translate(-50%, -50%) scale(0.8)';
+    
+    // Show results overlay with animation
+    const resultsOverlay = document.querySelector('.results-overlay');
+    resultsOverlay.style.display = 'block';
+    resultsOverlay.style.opacity = '0';
+    resultsOverlay.style.transform = 'translateY(20px)';
+    
+    // Animate in
+    setTimeout(() => {
+      resultsOverlay.style.transition = 'all 0.5s ease-out';
+      resultsOverlay.style.opacity = '1';
+      resultsOverlay.style.transform = 'translateY(0)';
+    }, 100);
+    
+    // Debug log to make sure this is being called
+    console.log('Results overlay should be visible now');
   }
 
   getPositionText(position) {
@@ -473,34 +592,36 @@ class MarbleRaceGame {
     );
     const netResult = totalWinnings - totalBet;
 
-    let payoutHTML = '<h3>💰 Last Race Payout</h3>';
+    let payoutHTML = '<h3>💰 Payout</h3>';
 
     if (payoutDetails.length > 0) {
       payoutDetails.forEach((detail) => {
-        payoutHTML += `<div>Marble ${detail.marbleId} (${this.getPositionText(
+        payoutHTML += `<div><strong>Marble ${detail.marbleId}</strong> (${this.getPositionText(
           detail.position
-        )}): ${detail.betAmount} × ${detail.multiplier} = ${
+        )}): ${detail.betAmount} × ${detail.multiplier} = <strong>${
           detail.winnings
-        } gems</div>`;
+        } gems</strong></div>`;
       });
     } else {
       payoutHTML += '<div>No winning positions</div>';
     }
 
-    payoutHTML += `<div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #ddd;">`;
-    payoutHTML += `<div>Total Bet: -${totalBet} gems</div>`;
-    payoutHTML += `<div>Total Winnings: +${totalWinnings} gems</div>`;
+    payoutHTML += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">`;
+    payoutHTML += `<div>Bet: -${totalBet} | Won: +${totalWinnings}</div>`;
 
     if (netResult > 0) {
-      payoutHTML += `<div class="payout-positive">Net Result: +${netResult} gems 🎉</div>`;
+      payoutHTML += `<div class="payout-positive">Net: +${netResult} gems 🎉</div>`;
     } else if (netResult < 0) {
-      payoutHTML += `<div class="payout-negative">Net Result: ${netResult} gems</div>`;
+      payoutHTML += `<div class="payout-negative">Net: ${netResult} gems</div>`;
     } else {
-      payoutHTML += `<div>Net Result: Break Even</div>`;
+      payoutHTML += `<div>Net: Break Even</div>`;
     }
 
     payoutHTML += '</div>';
     payoutContainer.innerHTML = payoutHTML;
+    
+    // Show the results overlay after calculating payouts
+    this.showResultsOverlay();
   }
 
   updateGemDisplay() {
