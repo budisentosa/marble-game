@@ -4,35 +4,67 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a web-based marble racing betting game built with vanilla HTML5, CSS3, and JavaScript. Players bet gems on marble races, watch random race simulations, and collect winnings based on finishing positions.
+This is a web-based marble racing betting game built with vanilla HTML5, CSS3, and JavaScript. Players bet gems on marble races, watch random race simulations, and collect winnings based on finishing positions. The game is fully implemented and functional.
 
-## Key Game Mechanics
+## Architecture
 
-- **Initial Balance**: 1,000 gems
-- **Marble Selection**: Choose 1-9 marbles from a pool of 10
-- **Betting**: Default 10 gems per marble, customizable (min 1 gem, max available balance)
-- **Race Duration**: 3-10 seconds with smooth animation
-- **Payouts**: 1st place (3x), 2nd place (2x), 3rd place (1x), 4th+ (0x)
-- **House Edge**: 40% (expected return 0.6x per bet)
+The codebase follows a simple, single-page application structure:
 
-## Development Environment
+- **index.html**: Main game interface with marble selection, betting controls, race track, and results
+- **script.js**: Contains the `MarbleRaceGame` class that manages all game logic and state
+- **styles.css**: Complete responsive styling with mobile optimizations and race animations
+- **prd.md**: Original product requirements document
 
-This is a client-side only project with no build system or dependencies. The codebase currently contains only a PRD document. When implementing:
+## Key Code Structure
 
-- Use vanilla JavaScript (ES6+)
-- Target modern browsers (Chrome, Firefox, Safari, Edge)
-- Implement responsive design for desktop and mobile
-- Use localStorage for gem balance persistence
-- No server or API calls required
+### MarbleRaceGame Class (script.js)
+The main game controller handles:
+- **State Management**: gems balance, selected marbles, bets, racing status
+- **Event Handling**: marble selection, bet input validation, race controls
+- **Race Simulation**: randomized marble movement with smooth animations
+- **Payout Calculation**: position-based multipliers (3x/2x/1x/0x)
+- **Persistence**: localStorage for gem balance between sessions
 
-## Technical Requirements
+### UI Components
+- **Marble Grid**: 10 selectable marbles with unique gradient styles
+- **Betting Interface**: Dynamic input generation for selected marbles
+- **Race Track**: Animated marble movement with finish line
+- **Results Display**: Position rankings with visual highlighting for top 3
 
-- **Performance**: Maintain 30+ FPS for race animations
-- **Load Time**: Under 3 seconds
-- **Memory**: Mobile-friendly usage
-- **Offline**: Fully functional without internet
-- **Accessibility**: Keyboard navigation, screen reader support, clear visual contrast
+## Development Commands
 
-## Game Balance
+This is a client-side only project with no build system. To develop:
 
-The random race simulation should ensure equal probability for all marbles. The 40% house edge is intentional for realistic gambling mechanics while providing reasonable play time with the 1,000 gem starting balance.
+```bash
+# Serve locally (any simple HTTP server)
+python -m http.server 8000
+# or
+npx serve .
+# or
+open index.html directly in browser
+```
+
+## Key Implementation Details
+
+### Race Animation
+- Uses `setInterval` with 50ms updates for smooth 20 FPS animation
+- Random speed multipliers (0.5-1.0) create realistic race dynamics
+- Track width calculation ensures proper finish line detection
+
+### Game Balance
+- 40% house edge with 0.6x expected return
+- All 10 marbles race but only selected ones can win payouts
+- Position-based payouts: 1st (3x), 2nd (2x), 3rd (1x), 4th+ (0x)
+
+### State Validation
+- Total bet validation against available gems
+- Marble selection limits (1-9 maximum)
+- Input sanitization for bet amounts
+
+## Mobile Responsiveness
+
+Comprehensive responsive design with breakpoints at 768px:
+- Stacked header layout on mobile
+- Smaller marble sizes and adjusted grid
+- Single-column betting inputs
+- Reduced race track height

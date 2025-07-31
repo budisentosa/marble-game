@@ -235,10 +235,47 @@ body {
 
 .race-status {
     text-align: center;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     font-weight: bold;
     color: #333;
     margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #ffecd2, #fcb69f);
+    border-radius: 10px;
+    border: 3px solid #ff6b6b;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.race-status.betting-phase {
+    background: linear-gradient(135deg, #a8edea, #fed6e3);
+    border-color: #4ecdc4;
+    color: #2d3436;
+}
+
+.race-status.racing-phase {
+    background: linear-gradient(135deg, #fad0c4, #ffd1ff);
+    border-color: #6c5ce7;
+    color: #2d3436;
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+    from { box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
+    to { box-shadow: 0 8px 25px rgba(108, 92, 231, 0.3); }
+}
+
+.results-header {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #2d3436;
+    background: linear-gradient(135deg, #fdcb6e, #e17055);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
 }
 
 .race-results {

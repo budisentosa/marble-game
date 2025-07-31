@@ -3,7 +3,11 @@ class MarbleRaceGame {
     this.gems = this.loadGems();
     this.selectedMarbles = new Set();
     this.bets = {};
-    this.isRacing = false;
+    this.gamePhase = 'betting'; // 'betting' or 'racing'
+    this.countdownTimer = null;
+    this.raceTimer = null;
+    this.bettingTimeLeft = 15;
+    this.racingTimeLeft = 15;
     this.marbleStyles = [
       'linear-gradient(135deg, #ff6b6b, #ee5a24)',
       'linear-gradient(135deg, #4ecdc4, #00d2d3)',
@@ -19,7 +23,7 @@ class MarbleRaceGame {
 
     this.initializeEventListeners();
     this.updateGemDisplay();
-    this.updateRaceStatusMessage();
+    this.startBettingPhase();
   }
 
   loadGems() {
@@ -39,13 +43,10 @@ class MarbleRaceGame {
     document
       .getElementById('reset-bets')
       .addEventListener('click', () => this.resetBets());
-    document
-      .getElementById('start-race')
-      .addEventListener('click', () => this.startRace());
   }
 
   handleMarbleSelection(event) {
-    if (this.isRacing) return;
+    if (this.gamePhase !== 'betting') return;
 
     const marbleId = parseInt(event.target.dataset.id);
     const marbleElement = event.target;
@@ -65,7 +66,6 @@ class MarbleRaceGame {
     }
 
     this.updateBettingInterface();
-    this.validateAndUpdateStartButton();
     this.clearError();
   }
 
@@ -100,42 +100,86 @@ class MarbleRaceGame {
   }
 
   handleBetChange(marbleId, value) {
+    if (this.gamePhase !== 'betting') return;
     const betAmount = parseInt(value) || 0;
     this.bets[marbleId] = Math.max(1, Math.min(betAmount, this.gems));
-    this.validateAndUpdateStartButton();
   }
 
-  validateAndUpdateStartButton() {
-    const startButton = document.getElementById('start-race');
-    const totalBet = Object.values(this.bets).reduce(
-      (sum, bet) => sum + bet,
-      0
-    );
-
-    if (this.selectedMarbles.size === 0) {
-      startButton.disabled = true;
-      this.updateRaceStatusMessage(
-        'Select marbles and place bets to start racing!'
-      );
-    } else if (totalBet > this.gems) {
-      startButton.disabled = true;
-      this.showError(
-        `Total bet (${totalBet}) exceeds available gems (${this.gems})`
-      );
-    } else if (totalBet === 0) {
-      startButton.disabled = true;
-      this.showError('Place at least 1 gem bet to start racing');
-    } else {
-      startButton.disabled = false;
-      this.clearError();
-      this.updateRaceStatusMessage(
-        `Ready to race! Total bet: ${totalBet} gems`
-      );
+  startBettingPhase() {
+    this.gamePhase = 'betting';
+    this.bettingTimeLeft = 15;
+    
+    // Clear any existing timers
+    if (this.countdownTimer) clearInterval(this.countdownTimer);
+    if (this.raceTimer) clearInterval(this.raceTimer);
+    
+    // Only clear the racing marbles, keep results visible
+    this.clearRaceTrack();
+    
+    // Enable marble selection
+    document.querySelectorAll('.marble').forEach(marble => {
+      marble.style.pointerEvents = 'auto';
+      marble.style.opacity = '1';
+    });
+    
+    this.updateCountdown();
+    
+    this.countdownTimer = setInterval(() => {
+      this.bettingTimeLeft--;
+      this.updateCountdown();
+      
+      if (this.bettingTimeLeft <= 0) {
+        clearInterval(this.countdownTimer);
+        this.startRacingPhase();
+      }
+    }, 1000);
+  }
+  
+  startRacingPhase() {
+    this.gamePhase = 'racing';
+    this.racingTimeLeft = 15;
+    
+    // Disable marble selection
+    document.querySelectorAll('.marble').forEach(marble => {
+      marble.style.pointerEvents = 'none';
+      marble.style.opacity = '0.7';
+    });
+    
+    // Process bets
+    const totalBet = Object.values(this.bets).reduce((sum, bet) => sum + bet, 0);
+    if (totalBet > 0 && totalBet <= this.gems) {
+      this.gems -= totalBet;
+      this.updateGemDisplay();
+      this.saveGems();
     }
+    
+    this.updateCountdown();
+    this.startRace();
+    
+    this.countdownTimer = setInterval(() => {
+      this.racingTimeLeft--;
+      this.updateCountdown();
+      
+      if (this.racingTimeLeft <= 0) {
+        clearInterval(this.countdownTimer);
+        this.startBettingPhase();
+      }
+    }, 1000);
+  }
+  
+  updateCountdown() {
+    const timeLeft = this.gamePhase === 'betting' ? this.bettingTimeLeft : this.racingTimeLeft;
+    const phase = this.gamePhase === 'betting' ? 'Betting' : 'Racing';
+    const statusMessage = `${phase} Phase: ${timeLeft}s remaining`;
+    this.updateRaceStatusMessage(statusMessage);
+    
+    // Update CSS class for visual phase indication
+    const statusElement = document.getElementById('race-status');
+    statusElement.className = `race-status ${this.gamePhase}-phase`;
   }
 
   resetBets() {
-    if (this.isRacing) return;
+    if (this.gamePhase !== 'betting') return;
 
     this.selectedMarbles.clear();
     this.bets = {};
@@ -145,29 +189,10 @@ class MarbleRaceGame {
     });
 
     this.updateBettingInterface();
-    this.validateAndUpdateStartButton();
-    this.clearResults();
     this.clearError();
   }
 
   async startRace() {
-    if (this.isRacing || this.selectedMarbles.size === 0) return;
-
-    this.isRacing = true;
-    document.getElementById('start-race').disabled = true;
-    this.clearResults();
-    this.clearError();
-
-    const totalBet = Object.values(this.bets).reduce(
-      (sum, bet) => sum + bet,
-      0
-    );
-    this.gems -= totalBet;
-    this.updateGemDisplay();
-    this.saveGems();
-
-    this.updateRaceStatusMessage('Race starting...');
-
     await this.simulateRace();
   }
 
@@ -190,14 +215,12 @@ class MarbleRaceGame {
       return marble;
     });
 
-    this.updateRaceStatusMessage('Racing in progress...');
-
     const raceResults = [];
-    const raceDuration = 3000 + Math.random() * 4000; // 3-7 seconds
+    const raceDuration = 15000; // Exactly 15 seconds
     const startTime = Date.now();
 
     return new Promise((resolve) => {
-      const raceInterval = setInterval(() => {
+      this.raceTimer = setInterval(() => {
         const currentTime = Date.now();
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / raceDuration, 1);
@@ -207,38 +230,48 @@ class MarbleRaceGame {
 
           const randomSpeed = 0.5 + Math.random() * 0.5;
           const currentDistance = parseFloat(marble.dataset.distance);
-          const newDistance = currentDistance + randomSpeed * 20;
+          const targetDistance = progress * trackWidth;
+          const newDistance = Math.min(currentDistance + randomSpeed * 15, targetDistance + (Math.random() - 0.5) * 50);
 
           marble.dataset.distance = newDistance.toString();
-          marble.style.left = `${Math.min(newDistance, trackWidth)}px`;
+          marble.style.left = `${Math.min(Math.max(newDistance, 0), trackWidth)}px`;
 
           if (
-            newDistance >= trackWidth &&
+            progress >= 1 &&
             !raceResults.find((r) => r.id === parseInt(marble.dataset.id))
           ) {
             marble.dataset.finished = 'true';
             raceResults.push({
               id: parseInt(marble.dataset.id),
               position: raceResults.length + 1,
+              finalDistance: newDistance
             });
           }
         });
 
-        if (raceResults.length === marbleElements.length || progress >= 1) {
-          clearInterval(raceInterval);
-
+        if (progress >= 1 && raceResults.length === 0) {
+          // Force finish all marbles
           marbleElements.forEach((marble) => {
-            if (
-              !raceResults.find((r) => r.id === parseInt(marble.dataset.id))
-            ) {
+            if (!marble.dataset.finished) {
+              marble.dataset.finished = 'true';
               raceResults.push({
                 id: parseInt(marble.dataset.id),
                 position: raceResults.length + 1,
+                finalDistance: parseFloat(marble.dataset.distance)
               });
             }
           });
+        }
 
-          raceResults.sort((a, b) => a.position - b.position);
+        if (progress >= 1 && raceResults.length === marbleElements.length) {
+          clearInterval(this.raceTimer);
+          
+          // Sort by final distance (furthest first)
+          raceResults.sort((a, b) => b.finalDistance - a.finalDistance);
+          raceResults.forEach((result, index) => {
+            result.position = index + 1;
+          });
+          
           this.finishRace(raceResults);
           resolve();
         }
@@ -247,18 +280,13 @@ class MarbleRaceGame {
   }
 
   finishRace(results) {
-    this.updateRaceStatusMessage('Race finished!');
     this.displayResults(results);
     this.calculateAndDisplayPayouts(results);
-
-    this.isRacing = false;
-    document.getElementById('start-race').disabled = false;
-    this.validateAndUpdateStartButton();
   }
 
   displayResults(results) {
     const resultsContainer = document.getElementById('race-results');
-    resultsContainer.innerHTML = '';
+    resultsContainer.innerHTML = '<div class="results-header">🏁 Last Race Results</div>';
 
     results.forEach((result) => {
       const resultItem = document.createElement('div');
@@ -346,7 +374,7 @@ class MarbleRaceGame {
     );
     const netResult = totalWinnings - totalBet;
 
-    let payoutHTML = '<h3>Payout Summary</h3>';
+    let payoutHTML = '<h3>💰 Last Race Payout</h3>';
 
     if (payoutDetails.length > 0) {
       payoutDetails.forEach((detail) => {
@@ -395,6 +423,10 @@ class MarbleRaceGame {
   clearResults() {
     document.getElementById('race-results').innerHTML = '';
     document.getElementById('payout-info').innerHTML = '';
+    document.getElementById('race-marbles').innerHTML = '';
+  }
+  
+  clearRaceTrack() {
     document.getElementById('race-marbles').innerHTML = '';
   }
 }
