@@ -506,10 +506,10 @@ body {
     font-size: 2rem;
     font-weight: bold;
     color: white;
-    background: rgba(0, 0, 0, 0.8);
+    /* background: rgba(0, 0, 0, 0.8);
     padding: 20px 40px;
     border-radius: 15px;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px); */
     z-index: 50;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     transition: all 0.5s ease-out;
@@ -977,26 +977,26 @@ body {
     text-align: center;
     font-size: 1.5rem;
     font-weight: bold;
-    color: #333;
+    color: #ffffff;
     margin-top: 20px;
     padding: 15px;
-    background: linear-gradient(135deg, #ffecd2, #fcb69f);
+    /* background: linear-gradient(135deg, #ffecd2, #fcb69f);
     border-radius: 10px;
     border: 3px solid #ff6b6b;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); */
     transition: all 0.3s ease;
 }
 
 .race-status.betting-phase {
-    background: linear-gradient(135deg, #a8edea, #fed6e3);
-    border-color: #4ecdc4;
-    color: #2d3436;
+    /* background: linear-gradient(135deg, #a8edea, #fed6e3);
+    border-color: #4ecdc4; */
+    color: #ffffff;
 }
 
 .race-status.racing-phase {
-    background: linear-gradient(135deg, #fad0c4, #ffd1ff);
+    /* background: linear-gradient(135deg, #fad0c4, #ffd1ff);
     border-color: #6c5ce7;
-    color: #2d3436;
+    color: #2d3436; */
     animation: pulse 1s infinite alternate;
 }
 
