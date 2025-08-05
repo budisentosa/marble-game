@@ -640,8 +640,7 @@ class MarbleRaceGame {
   }
 
   updateGemDisplay() {
-    document.getElementById("gem-count").textContent = this.gems;
-    // Update navigation gem balance if it exists
+    // Update navigation gem balance (Nova gems balance)
     const navGemCount = document.getElementById("nav-gem-count");
     if (navGemCount) {
       navGemCount.textContent = this.gems.toLocaleString();

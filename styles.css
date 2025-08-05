@@ -254,19 +254,17 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     margin: 0;
     padding: 0;
-    padding-top: 80px; /* Add space for fixed navigation */
     min-height: 100svh;
     max-height: 100svh;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Fixed Top Navigation */
 .topnav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 80px;
+    position: relative;
+    flex-shrink: 0;
     background: #a739bf;
     box-shadow: 0px 6px 5px -4px rgba(0,0,0,0.55), 0px 24px 34px -8px rgba(0,0,0,0.65);
     z-index: 1000;
@@ -394,7 +392,7 @@ body {
 
 .flag-element {
     position: absolute;
-    opacity: 0.1;
+    opacity: 0.3;
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -402,40 +400,47 @@ body {
 }
 
 .flag-1 {
-    top: -170%;
-    right: 0;
-    bottom: -45%;
-    left: 64%;
+    top: -20px;
+    right: -20px;
+    width: 80px;
+    height: 100px;
 }
 
 .flag-2 {
-    top: -160%;
-    right: 29%;
-    bottom: -8%;
-    left: 63%;
+    top: 10px;
+    right: 100px;
+    width: 60px;
+    height: 80px;
 }
 
 .flag-3 {
-    top: -191%;
-    right: 30%;
-    bottom: -93%;
-    left: 27%;
+    top: -10px;
+    left: -30px;
+    width: 70px;
+    height: 90px;
 }
 
 .flag-4 {
-    top: -147%;
-    right: 65%;
-    bottom: -74%;
-    left: 27%;
+    bottom: -20px;
+    left: 50px;
+    width: 50px;
+    height: 70px;
 }
 
 /* Full Screen Race Container */
 .race-container {
-    width: 100vw;
-    height: calc(100svh - 80px); /* Adjust for fixed navigation */
+    flex: 1;
     display: flex;
     flex-direction: column;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+}
+
+/* Bottom Placeholder */
+.bottom-placeholder {
+    height: 80px;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.1);
 }
 
 .race-header {
@@ -443,7 +448,7 @@ body {
     color: white;
     padding: 15px 30px;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     z-index: 100;
     backdrop-filter: blur(10px);
@@ -461,20 +466,7 @@ body {
     animation: pulse-glow 2s infinite;
 }
 
-.gem-balance {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.gem-icon {
-    font-size: 1.5rem;
-}
+/* Removed gem-balance styles - now using Nova gems balance in navigation */
 
 /* Full Screen Race Track */
 .race-track {
@@ -1044,8 +1036,6 @@ body {
     
     .race-header {
         padding: 10px 15px;
-        flex-direction: column;
-        gap: 10px;
         text-align: center;
     }
     
