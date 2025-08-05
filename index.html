@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marble Race Betting Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik+One&family=Roboto:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -83,35 +86,218 @@
     <!-- Betting Modal -->
     <div id="betting-modal" class="betting-modal">
         <div class="betting-modal-content">
+            <!-- Header -->
             <div class="betting-modal-header">
-                <h2>Select Marbles & Place Bets</h2>
-                <div id="betting-countdown" class="betting-countdown">15s</div>
-                <button id="close-betting-modal" class="close-modal">&times;</button>
+                <h2>PLACE BET FOR NEXT RACE</h2>
             </div>
             
-            <div class="marble-selection">
-                <h3>Select Marbles (1-9)</h3>
-                <div class="marble-grid">
-                    <div class="marble" data-id="1" style="background: linear-gradient(135deg, #ff6b6b, #ee5a24);">1</div>
-                    <div class="marble" data-id="2" style="background: linear-gradient(135deg, #4ecdc4, #00d2d3);">2</div>
-                    <div class="marble" data-id="3" style="background: linear-gradient(135deg, #45b7d1, #96ceb4);">3</div>
-                    <div class="marble" data-id="4" style="background: linear-gradient(135deg, #f9ca24, #f0932b);">4</div>
-                    <div class="marble" data-id="5" style="background: linear-gradient(135deg, #eb4d4b, #6639a6);">5</div>
-                    <div class="marble" data-id="6" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe);">6</div>
-                    <div class="marble" data-id="7" style="background: linear-gradient(135deg, #00b894, #00cec9);">7</div>
-                    <div class="marble" data-id="8" style="background: linear-gradient(135deg, #e17055, #fdcb6e);">8</div>
-                    <div class="marble" data-id="9" style="background: linear-gradient(135deg, #fd79a8, #fdcb6e);">9</div>
-                    <div class="marble" data-id="10" style="background: linear-gradient(135deg, #636e72, #2d3436);">10</div>
+            <!-- Main Content -->
+            <div class="betting-modal-main">
+                <div class="marble-slots">
+                    <div class="slots-group slots-left">
+                        <!-- Marbles 1-5 -->
+                        <div class="marble-slot" data-id="1">
+                            <div class="marble-checkbox">
+                                <input type="checkbox" id="marble-check-1">
+                                <label for="marble-check-1"></label>
+                            </div>
+                            <div class="marble-number">1</div>
+                            <div class="marble-icon" style="background: linear-gradient(135deg, #ff6b6b, #ee5a24);"></div>
+                            <div class="marble-name">Marble name</div>
+                            <div class="bet-controls">
+                                <button class="btn-minus" data-marble="1">−</button>
+                                <div class="bet-input">
+                                    <input type="number" value="999" min="0" data-marble="1">
+                                </div>
+                                <button class="btn-plus" data-marble="1">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="marble-slot" data-id="2">
+                            <div class="marble-checkbox">
+                                <input type="checkbox" id="marble-check-2">
+                                <label for="marble-check-2"></label>
+                            </div>
+                            <div class="marble-number">2</div>
+                            <div class="marble-icon" style="background: linear-gradient(135deg, #4ecdc4, #00d2d3);"></div>
+                            <div class="marble-name">Marble name</div>
+                            <div class="bet-controls">
+                                <button class="btn-minus" data-marble="2">−</button>
+                                <div class="bet-input">
+                                    <input type="number" value="999" min="0" data-marble="2">
+                                </div>
+                                <button class="btn-plus" data-marble="2">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="marble-slot" data-id="3">
+                            <div class="marble-checkbox">
+                                <input type="checkbox" id="marble-check-3">
+                                <label for="marble-check-3"></label>
+                            </div>
+                            <div class="marble-number">3</div>
+                            <div class="marble-icon" style="background: linear-gradient(135deg, #45b7d1, #96ceb4);"></div>
+                            <div class="marble-name">Marble name</div>
+                            <div class="bet-controls">
+                                <button class="btn-minus" data-marble="3">−</button>
+                                <div class="bet-input">
+                                    <input type="number" value="999" min="0" data-marble="3">
+                                </div>
+                                <button class="btn-plus" data-marble="3">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="marble-slot" data-id="4">
+                            <div class="marble-checkbox">
+                                <input type="checkbox" id="marble-check-4">
+                                <label for="marble-check-4"></label>
+                            </div>
+                            <div class="marble-number">4</div>
+                            <div class="marble-icon" style="background: linear-gradient(135deg, #f9ca24, #f0932b);"></div>
+                            <div class="marble-name">Marble name</div>
+                            <div class="bet-controls">
+                                <button class="btn-minus" data-marble="4">−</button>
+                                <div class="bet-input">
+                                    <input type="number" value="999" min="0" data-marble="4">
+                                </div>
+                                <button class="btn-plus" data-marble="4">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="marble-slot" data-id="5">
+                            <div class="marble-checkbox">
+                                <input type="checkbox" id="marble-check-5">
+                                <label for="marble-check-5"></label>
+                            </div>
+                            <div class="marble-number">5</div>
+                            <div class="marble-icon" style="background: linear-gradient(135deg, #eb4d4b, #6639a6);"></div>
+                            <div class="marble-name">Marble name</div>
+                            <div class="bet-controls">
+                                <button class="btn-minus" data-marble="5">−</button>
+                                <div class="bet-input">
+                                    <input type="number" value="999" min="0" data-marble="5">
+                                </div>
+                                <button class="btn-plus" data-marble="5">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="slots-divider"></div>
+                    
+                    <div class="slots-group slots-right">
+                        <!-- Marbles 6-10 -->
+                        <div class="marble-slot" data-id="6">
+                            <div class="marble-checkbox">
+                                <input type="checkbox" id="marble-check-6">
+                                <label for="marble-check-6"></label>
+                            </div>
+                            <div class="marble-number">6</div>
+                            <div class="marble-icon" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe);"></div>
+                            <div class="marble-name">Marble name</div>
+                            <div class="bet-controls">
+                                <button class="btn-minus" data-marble="6">−</button>
+                                <div class="bet-input">
+                                    <input type="number" value="999" min="0" data-marble="6">
+                                </div>
+                                <button class="btn-plus" data-marble="6">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="marble-slot" data-id="7">
+                            <div class="marble-checkbox">
+                                <input type="checkbox" id="marble-check-7">
+                                <label for="marble-check-7"></label>
+                            </div>
+                            <div class="marble-number">7</div>
+                            <div class="marble-icon" style="background: linear-gradient(135deg, #00b894, #00cec9);"></div>
+                            <div class="marble-name">Marble name</div>
+                            <div class="bet-controls">
+                                <button class="btn-minus" data-marble="7">−</button>
+                                <div class="bet-input">
+                                    <input type="number" value="999" min="0" data-marble="7">
+                                </div>
+                                <button class="btn-plus" data-marble="7">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="marble-slot" data-id="8">
+                            <div class="marble-checkbox">
+                                <input type="checkbox" id="marble-check-8">
+                                <label for="marble-check-8"></label>
+                            </div>
+                            <div class="marble-number">8</div>
+                            <div class="marble-icon" style="background: linear-gradient(135deg, #e17055, #fdcb6e);"></div>
+                            <div class="marble-name">Marble name</div>
+                            <div class="bet-controls">
+                                <button class="btn-minus" data-marble="8">−</button>
+                                <div class="bet-input">
+                                    <input type="number" value="999" min="0" data-marble="8">
+                                </div>
+                                <button class="btn-plus" data-marble="8">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="marble-slot" data-id="9">
+                            <div class="marble-checkbox">
+                                <input type="checkbox" id="marble-check-9">
+                                <label for="marble-check-9"></label>
+                            </div>
+                            <div class="marble-number">9</div>
+                            <div class="marble-icon" style="background: linear-gradient(135deg, #fd79a8, #fdcb6e);"></div>
+                            <div class="marble-name">Marble name</div>
+                            <div class="bet-controls">
+                                <button class="btn-minus" data-marble="9">−</button>
+                                <div class="bet-input">
+                                    <input type="number" value="999" min="0" data-marble="9">
+                                </div>
+                                <button class="btn-plus" data-marble="9">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="marble-slot" data-id="10">
+                            <div class="marble-checkbox">
+                                <input type="checkbox" id="marble-check-10">
+                                <label for="marble-check-10"></label>
+                            </div>
+                            <div class="marble-number">10</div>
+                            <div class="marble-icon" style="background: linear-gradient(135deg, #636e72, #2d3436);"></div>
+                            <div class="marble-name">Marble name</div>
+                            <div class="bet-controls">
+                                <button class="btn-minus" data-marble="10">−</button>
+                                <div class="bet-input">
+                                    <input type="number" value="999" min="0" data-marble="10">
+                                </div>
+                                <button class="btn-plus" data-marble="10">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Bar -->
+                <div class="betting-bottom-bar">
+                    <div class="betting-totals">
+                        <div class="total-input">
+                            <label>Total Amount Injected</label>
+                            <div class="total-display">0</div>
+                        </div>
+                        <div class="total-input">
+                            <label>Multi Inject Amount</label>
+                            <div class="total-display">0</div>
+                        </div>
+                    </div>
+                    <div class="betting-actions">
+                        <button id="reset-bets" class="btn-reset">Reset</button>
+                        <button id="repeat-bets" class="btn-repeat">Repeat</button>
+                    </div>
+                    <div class="play-button-container">
+                        <button id="confirm-bets" class="btn-play">PLAY (31)</button>
+                    </div>
                 </div>
             </div>
-
-            <div class="betting-section">
-                <div id="bet-inputs" class="bet-inputs"></div>
-                <div class="bet-controls">
-                    <button id="reset-bets" class="btn btn-secondary">Reset Bets</button>
-                    <button id="confirm-bets" class="btn btn-primary">Confirm Bets</button>
-                </div>
-                <div id="error-message" class="error-message"></div>
+            
+            <!-- Footer -->
+            <div class="betting-modal-footer">
+                <h3>SELECT MARBLE FIRST</h3>
             </div>
         </div>
     </div>

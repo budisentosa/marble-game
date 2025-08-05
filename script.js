@@ -38,8 +38,23 @@ class MarbleRaceGame {
   }
 
   initializeEventListeners() {
-    document.querySelectorAll(".marble").forEach((marble) => {
-      marble.addEventListener("click", (e) => this.handleMarbleSelection(e));
+    // Marble checkbox selection
+    document.querySelectorAll(".marble-checkbox input").forEach((checkbox) => {
+      checkbox.addEventListener("change", (e) => this.handleMarbleSelection(e));
+    });
+
+    // Bet control buttons
+    document.querySelectorAll(".btn-minus").forEach((btn) => {
+      btn.addEventListener("click", (e) => this.adjustBet(e, -1));
+    });
+
+    document.querySelectorAll(".btn-plus").forEach((btn) => {
+      btn.addEventListener("click", (e) => this.adjustBet(e, 1));
+    });
+
+    // Bet input fields
+    document.querySelectorAll(".bet-input input").forEach((input) => {
+      input.addEventListener("change", (e) => this.updateBetFromInput(e));
     });
 
     document
@@ -50,10 +65,6 @@ class MarbleRaceGame {
     document
       .getElementById("open-betting-modal")
       .addEventListener("click", () => this.openBettingModal());
-
-    document
-      .getElementById("close-betting-modal")
-      .addEventListener("click", () => this.closeBettingModal());
 
     document
       .getElementById("confirm-bets")
@@ -68,116 +79,126 @@ class MarbleRaceGame {
   }
 
   handleMarbleSelection(event) {
-    const marbleId = parseInt(event.target.dataset.id);
-    const marbleElement = event.target;
+    const checkbox = event.target;
+    const marbleId = parseInt(checkbox.id.split("-")[2]); // Extract from marble-check-X
+    const isChecked = checkbox.checked;
 
     if (this.gamePhase === "betting") {
       // Handle current race betting
-      if (this.selectedMarbles.has(marbleId)) {
-        this.selectedMarbles.delete(marbleId);
-        marbleElement.classList.remove("selected");
-        delete this.bets[marbleId];
-      } else {
+      if (isChecked) {
         if (this.selectedMarbles.size >= 9) {
           this.showError("You can select maximum 9 marbles");
+          checkbox.checked = false;
           return;
         }
         this.selectedMarbles.add(marbleId);
-        marbleElement.classList.add("selected");
-        this.bets[marbleId] = 10; // Default bet
+        this.bets[marbleId] = 999; // Default bet from design
+      } else {
+        this.selectedMarbles.delete(marbleId);
+        delete this.bets[marbleId];
       }
     } else {
       // Handle next race betting during racing phase
-      if (this.nextSelectedMarbles.has(marbleId)) {
-        this.nextSelectedMarbles.delete(marbleId);
-        marbleElement.classList.remove("next-selected");
-        delete this.nextBets[marbleId];
-      } else {
+      if (isChecked) {
         if (this.nextSelectedMarbles.size >= 9) {
           this.showError("You can select maximum 9 marbles for next race");
+          checkbox.checked = false;
           return;
         }
         this.nextSelectedMarbles.add(marbleId);
-        marbleElement.classList.add("next-selected");
-        this.nextBets[marbleId] = 10; // Default bet
+        this.nextBets[marbleId] = 999; // Default bet from design
+      } else {
+        this.nextSelectedMarbles.delete(marbleId);
+        delete this.nextBets[marbleId];
       }
     }
 
-    this.updateBettingInterface();
+    this.updateBettingTotals();
     this.clearError();
   }
 
-  updateBettingInterface() {
-    const betInputsContainer = document.getElementById("bet-inputs");
-    betInputsContainer.innerHTML = "";
+  adjustBet(event, delta) {
+    const marbleId = parseInt(event.target.dataset.marble);
+    const input = document.querySelector(`input[data-marble="${marbleId}"]`);
+    const currentValue = parseInt(input.value) || 0;
+    const newValue = Math.max(0, currentValue + delta);
 
+    input.value = newValue;
+
+    // Update the bet in our data
     if (this.gamePhase === "betting") {
-      // Show current race betting
-      if (this.selectedMarbles.size > 0) {
-        const currentRaceHeader = document.createElement("div");
-        currentRaceHeader.className = "betting-header current-race";
-        currentRaceHeader.innerHTML = "🏁 Current Race Bets";
-        betInputsContainer.appendChild(currentRaceHeader);
+      if (this.selectedMarbles.has(marbleId)) {
+        this.bets[marbleId] = newValue;
       }
-
-      this.selectedMarbles.forEach((marbleId) => {
-        const betGroup = document.createElement("div");
-        betGroup.className = "bet-input-group";
-
-        betGroup.innerHTML = `
-                  <div class="marble-preview" style="background: ${
-                    this.marbleStyles[marbleId - 1]
-                  };">${marbleId}</div>
-                  <label>Marble ${marbleId}:</label>
-                  <input type="number" 
-                         id="bet-${marbleId}" 
-                         value="${this.bets[marbleId]}" 
-                         min="1" 
-                         max="${this.gems}">
-                  <span>gems</span>
-              `;
-
-        betInputsContainer.appendChild(betGroup);
-
-        const input = document.getElementById(`bet-${marbleId}`);
-        input.addEventListener("input", (e) =>
-          this.handleBetChange(marbleId, e.target.value, "current")
-        );
-      });
     } else {
-      // Show next race betting during racing phase
-      if (this.nextSelectedMarbles.size > 0) {
-        const nextRaceHeader = document.createElement("div");
-        nextRaceHeader.className = "betting-header next-race";
-        nextRaceHeader.innerHTML = "⏭️ Next Race Bets";
-        betInputsContainer.appendChild(nextRaceHeader);
+      if (this.nextSelectedMarbles.has(marbleId)) {
+        this.nextBets[marbleId] = newValue;
       }
-
-      this.nextSelectedMarbles.forEach((marbleId) => {
-        const betGroup = document.createElement("div");
-        betGroup.className = "bet-input-group";
-
-        betGroup.innerHTML = `
-                  <div class="marble-preview" style="background: ${
-                    this.marbleStyles[marbleId - 1]
-                  };">${marbleId}</div>
-                  <label>Marble ${marbleId}:</label>
-                  <input type="number" 
-                         id="next-bet-${marbleId}" 
-                         value="${this.nextBets[marbleId]}" 
-                         min="1" 
-                         max="${this.gems}">
-                  <span>gems</span>
-              `;
-
-        betInputsContainer.appendChild(betGroup);
-
-        const input = document.getElementById(`next-bet-${marbleId}`);
-        input.addEventListener("input", (e) =>
-          this.handleBetChange(marbleId, e.target.value, "next")
-        );
-      });
     }
+
+    this.updateBettingTotals();
+  }
+
+  updateBetFromInput(event) {
+    const input = event.target;
+    const marbleId = parseInt(input.dataset.marble);
+    const value = Math.max(0, parseInt(input.value) || 0);
+
+    input.value = value;
+
+    // Update the bet in our data
+    if (this.gamePhase === "betting") {
+      if (this.selectedMarbles.has(marbleId)) {
+        this.bets[marbleId] = value;
+      }
+    } else {
+      if (this.nextSelectedMarbles.has(marbleId)) {
+        this.nextBets[marbleId] = value;
+      }
+    }
+
+    this.updateBettingTotals();
+  }
+
+  updateBettingTotals() {
+    const currentBets =
+      this.gamePhase === "betting" ? this.bets : this.nextBets;
+    const totalAmount = Object.values(currentBets).reduce(
+      (sum, bet) => sum + bet,
+      0
+    );
+
+    // Update total displays
+    const totalDisplays = document.querySelectorAll(".total-display");
+    if (totalDisplays.length > 0) {
+      totalDisplays[0].textContent = totalAmount;
+    }
+  }
+
+  updateBettingInterface() {
+    // Update checkboxes and input values for all marbles
+    for (let marbleId = 1; marbleId <= 10; marbleId++) {
+      const checkbox = document.getElementById(`marble-check-${marbleId}`);
+      const input = document.querySelector(`input[data-marble="${marbleId}"]`);
+
+      if (this.gamePhase === "betting") {
+        // Current race betting
+        const isSelected = this.selectedMarbles.has(marbleId);
+        const betAmount = this.bets[marbleId] || 999;
+
+        if (checkbox) checkbox.checked = isSelected;
+        if (input) input.value = betAmount;
+      } else {
+        // Next race betting during racing phase
+        const isSelected = this.nextSelectedMarbles.has(marbleId);
+        const betAmount = this.nextBets[marbleId] || 999;
+
+        if (checkbox) checkbox.checked = isSelected;
+        if (input) input.value = betAmount;
+      }
+    }
+
+    this.updateBettingTotals();
   }
 
   handleBetChange(marbleId, value, raceType) {
@@ -327,14 +348,6 @@ class MarbleRaceGame {
     const modal = document.getElementById("betting-modal");
     modal.classList.add("active");
 
-    // Update modal header based on phase
-    const modalHeader = document.querySelector(".betting-modal-header h2");
-    if (this.gamePhase === "betting") {
-      modalHeader.textContent = "Select Marbles & Place Bets";
-    } else {
-      modalHeader.textContent = "Bet for Next Race";
-    }
-
     this.updateBettingInterface();
   }
 
@@ -370,21 +383,22 @@ class MarbleRaceGame {
     if (this.gamePhase === "betting") {
       this.selectedMarbles.clear();
       this.bets = {};
-
-      document.querySelectorAll(".marble").forEach((marble) => {
-        marble.classList.remove("selected");
-      });
     } else {
       // During racing phase, reset next race bets
       this.nextSelectedMarbles.clear();
       this.nextBets = {};
-
-      document.querySelectorAll(".marble").forEach((marble) => {
-        marble.classList.remove("next-selected");
-      });
     }
 
-    this.updateBettingInterface();
+    // Reset all checkboxes and input values
+    for (let marbleId = 1; marbleId <= 10; marbleId++) {
+      const checkbox = document.getElementById(`marble-check-${marbleId}`);
+      const input = document.querySelector(`input[data-marble="${marbleId}"]`);
+
+      if (checkbox) checkbox.checked = false;
+      if (input) input.value = 999;
+    }
+
+    this.updateBettingTotals();
     this.clearError();
   }
 
